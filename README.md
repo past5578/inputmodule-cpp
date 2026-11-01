@@ -26,4 +26,4 @@ Then, log out and log back in and retry.
 
 ## References
 
-[https://github.com/FrameworkComputer/inputmodule-rs/blob/main/commands.md](inputmodule-rs commands)
+[inputmodule-rs Commands](https://github.com/FrameworkComputer/inputmodule-rs/blob/main/commands.md)
