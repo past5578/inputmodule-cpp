@@ -1,1 +1,0 @@
-./build/ledmatrix-cpp-test

@@ -1,10 +1,10 @@
-# ledmatrix-cpp
+# inputmodule-cpp
 
-A C++ library for controlling the Framework Laptop 16 LED matrix.
+A C++ library for controlling the Framework Laptop input modules.
 
 ## Linux permissions
 
-You will normally not be able to access the LED matrix's serial port.
+You will normally not be able to access the serial port of the input module(s).
 The fix for this is to install Framework's udev rule:
 
 ```sh
