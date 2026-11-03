@@ -46,3 +46,13 @@ void InputModule::send_command(uint8_t command_id, std::vector<uint8_t> paramete
         throw std::runtime_error(std::format("failed to set tty attrs: {}", std::strerror(errno)));
     }
 }
+
+void InputModule::bootloader() { send_command(0x02); };
+
+void InputModule::sleep(bool state) { send_command(0x03, {state}); };
+
+// bool InputModule::get_sleep() {};
+
+void InputModule::panic() { send_command(0x05); };
+
+// uint8_t InputModule::version() {};
