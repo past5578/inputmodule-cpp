@@ -1,5 +1,6 @@
 #include "inputmodule.h"
 
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <format>
@@ -47,12 +48,38 @@ void InputModule::send_command(uint8_t command_id, std::vector<uint8_t> paramete
     }
 }
 
+std::array<uint8_t, 32> InputModule::send_query(uint8_t command_id,
+                                                std::vector<uint8_t> parameters) {
+    tcflush(fd, TCIFLUSH);
+    send_command(command_id, parameters);
+
+    std::array<uint8_t, 32> buffer{};
+
+    int status = read(fd, buffer.data(), 32);
+
+    if (status == -1) {
+        throw std::runtime_error(std::format("failed to read response: {}", std::strerror(errno)));
+    } else if (status == 0) {
+        throw std::runtime_error("read timed out");
+    }
+
+    return buffer;
+}
+
 void InputModule::bootloader() { send_command(0x02); };
 
 void InputModule::sleep(bool state) { send_command(0x03, {state}); };
 
-// bool InputModule::get_sleep() {};
+bool InputModule::get_sleep() { return send_query(0x03)[0]; };
 
 void InputModule::panic() { send_command(0x05); };
 
-// uint8_t InputModule::version() {};
+std::array<uint8_t, 3> InputModule::version() {
+    std::array<uint8_t, 3> buffer{};
+
+    std::array<uint8_t, 32> response = send_query(0x20);
+
+    std::copy_n(response.begin(), buffer.size(), buffer.begin());
+
+    return buffer;
+};
