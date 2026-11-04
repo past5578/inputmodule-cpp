@@ -1,0 +1,5 @@
+Checks: >
+    cppcoreguidelines-*,
+    modernize-*,
+    -cppcoreguidelines-pro-type-vararg,
+    -modernize-use-trailing-return-type
