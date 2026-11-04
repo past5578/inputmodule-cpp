@@ -41,9 +41,4 @@ class LedMatrix : public InputModule {
     void draw_bw(uint8_t bytes[39]);   // todo
     void stage_col(uint8_t bytes[35]); // todo
     void flush_cols();
-    /*
-    * Likely won't implement:
-    void start_game(uint8_t game_id);
-    void game_control(uint8_t game_control_id);
-    */
 };

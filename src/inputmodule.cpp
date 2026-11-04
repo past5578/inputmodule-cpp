@@ -66,13 +66,21 @@ std::array<uint8_t, 32> InputModule::send_query(uint8_t command_id,
     return buffer;
 }
 
-void InputModule::bootloader() { send_command(0x02); };
+void InputModule::bootloader() {
+    send_command(0x02);
+};
 
-void InputModule::sleep(bool state) { send_command(0x03, {state}); };
+void InputModule::sleep(bool state) {
+    send_command(0x03, {state});
+};
 
-bool InputModule::get_sleep() { return send_query(0x03)[0]; };
+bool InputModule::get_sleep() {
+    return send_query(0x03)[0];
+};
 
-void InputModule::panic() { send_command(0x05); };
+void InputModule::panic() {
+    send_command(0x05);
+};
 
 std::array<uint8_t, 3> InputModule::version() {
     std::array<uint8_t, 3> buffer{};
