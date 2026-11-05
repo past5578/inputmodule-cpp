@@ -2,7 +2,10 @@
 
 #include "inputmodule.h"
 
-enum PatternId {
+#include <cstdint>
+#include <span>
+
+enum class PatternId : uint8_t {
     PERCENTAGE,
     GRADIENT,
     DOUBLE_GRADIENT,
@@ -13,32 +16,14 @@ enum PatternId {
     DISPLAY_LOTUS_VERTICAL
 };
 
-/*
- Remaining function wrappers:
- * Brightness
- * Bootloader
- * Sleep
- * GetSleep
- * Animate
- * GetAnimate
- * Panic
- * DrawBW
- * StageCol
- * FlushCols
- * StartGame
- * GameCtrl
- * GameStatus
- * Version
- */
-
 class LedMatrix : public InputModule {
   public:
     explicit LedMatrix(const char *path = "/dev/ttyACM0") : InputModule(path) {};
 
     void pattern(PatternId pattern_id);
-    void animate(bool state);          // todo
-    bool get_animate();                // todo
-    void draw_bw(uint8_t bytes[39]);   // todo
-    void stage_col(uint8_t bytes[35]); // todo
+    void animate(bool state);                 // todo
+    bool get_animate();                       // todo
+    void draw_bw(std::span<uint8_t> bytes);   // todo
+    void stage_col(std::span<uint8_t> bytes); // todo
     void flush_cols();
 };

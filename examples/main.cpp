@@ -1,15 +1,22 @@
-#include <format>
-#include <iostream>
+#include <array>
 
 #include "ledmatrix.h"
 
 int main() {
     LedMatrix led;
-    led.pattern(PatternId::GRADIENT);
-    led.sleep(true);
 
-    std::array<uint8_t, 3> version = led.version();
-    std::cout << std::format("{:08b} {:08b} {:08b}\n", version[0], version[1], version[2]);
+    constexpr int MAX_BRIGHTNESS = 256;
+    constexpr int MAX_COLUMNS = 9;
 
+    for (int b = 0; b < MAX_BRIGHTNESS; b++) {
+        for (int col = 0; col < MAX_COLUMNS; col++) {
+            std::array<uint8_t, 35> bytes{};
+            bytes.fill(b);
+            bytes[0] = col;
+
+            led.stage_col(bytes);
+        }
+        led.flush_cols();
+    }
     return 0;
 }

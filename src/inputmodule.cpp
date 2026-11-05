@@ -1,32 +1,36 @@
 #include "inputmodule.h"
+#include "command.h"
 
 #include <array>
+#include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <format>
 #include <stdexcept>
+#include <vector>
 
-#include <errno.h>
 #include <fcntl.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
 
-InputModule::InputModule(const char *path) {
-    fd = open(path, O_RDWR);
-
-    if (fd == -1)
+InputModule::InputModule(const char *path) : fd(open(path, O_RDWR)) {
+    if (fd == -1) {
         throw std::runtime_error(std::format("failed to open {}: {}", path, std::strerror(errno)));
+    }
 
-    termios tty;
-    if (tcgetattr(fd, &tty) == -1)
+    termios tty{};
+    if (tcgetattr(fd, &tty) == -1) {
         throw std::runtime_error(std::format("failed to get tty attrs: {}", std::strerror(errno)));
+    }
 
     cfmakeraw(&tty);
     cfsetispeed(&tty, B115200);
     cfsetospeed(&tty, B115200);
 
-    if (tcsetattr(fd, 0, &tty) == -1)
+    if (tcsetattr(fd, 0, &tty) == -1) {
         throw std::runtime_error(std::format("failed to set tty attrs: {}", std::strerror(errno)));
+    }
 }
 
 InputModule::~InputModule() {
@@ -37,10 +41,8 @@ InputModule::~InputModule() {
     close(fd);
 }
 
-constexpr uint8_t MAGIC_BYTES[2] = {0x32, 0xAC};
-
-void InputModule::send_command(uint8_t command_id, std::vector<uint8_t> parameters) {
-    std::vector<uint8_t> message = {MAGIC_BYTES[0], MAGIC_BYTES[1], command_id};
+void InputModule::send_command(Command command, std::span<uint8_t> parameters) const {
+    std::vector<uint8_t> message{MAGIC_BYTES[0], MAGIC_BYTES[1], static_cast<uint8_t>(command)};
     message.insert(message.end(), parameters.begin(), parameters.end());
 
     if (write(fd, message.data(), message.size()) != (ssize_t)message.size()) {
@@ -48,46 +50,62 @@ void InputModule::send_command(uint8_t command_id, std::vector<uint8_t> paramete
     }
 }
 
-std::array<uint8_t, 32> InputModule::send_query(uint8_t command_id,
-                                                std::vector<uint8_t> parameters) {
+query_response InputModule::send_query(Command command, std::span<uint8_t> parameters) const {
     tcflush(fd, TCIFLUSH);
-    send_command(command_id, parameters);
+    send_command(command, parameters);
 
-    std::array<uint8_t, 32> buffer{};
+    query_response buffer{};
 
-    int status = read(fd, buffer.data(), 32);
+    ssize_t status = read(fd, buffer.data(), RETURN_SIZE);
 
     if (status == -1) {
         throw std::runtime_error(std::format("failed to read response: {}", std::strerror(errno)));
-    } else if (status == 0) {
+    }
+    if (status == 0) {
         throw std::runtime_error("read timed out");
     }
 
     return buffer;
 }
 
-void InputModule::bootloader() {
-    send_command(0x02);
+void InputModule::bootloader() const {
+    send_command(Command::BOOTLOADER);
 };
 
-void InputModule::sleep(bool state) {
-    send_command(0x03, {state});
+void InputModule::sleep(bool state) const {
+    std::array<uint8_t, 1> params{static_cast<uint8_t>(state)};
+
+    send_command(Command::SLEEP, params);
+}
+
+bool InputModule::get_sleep() const {
+    return send_query(Command::GET_SLEEP)[0] != 0U;
 };
 
-bool InputModule::get_sleep() {
-    return send_query(0x03)[0];
+void InputModule::panic() const {
+    send_command(Command::PANIC);
 };
 
-void InputModule::panic() {
-    send_command(0x05);
-};
+/*
+++-- Major version
+|        +-- Minor version
+|        |   +-- Patch version
+|        |   |           +-- 1 if is pre-release,
+|        |   |           |   0 otherwise
+MMMMMMMM mmmmPPPP 0000000p-- Major version
+*/
 
-std::array<uint8_t, 3> InputModule::version() {
-    std::array<uint8_t, 3> buffer{};
+Version InputModule::version() const {
+    query_response response = send_query(Command::VERSION);
 
-    std::array<uint8_t, 32> response = send_query(0x20);
+    auto major_version = response[0];
+    auto minor_version = static_cast<uint8_t>(response[1] >> 4);
+    auto patch_version =
+        static_cast<uint8_t>(response[1] & 0x0F); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    bool is_prerelease = response[2] == 1;
 
-    std::copy_n(response.begin(), buffer.size(), buffer.begin());
-
-    return buffer;
-};
+    return Version{.major_version = major_version,
+                   .minor_version = minor_version,
+                   .patch_version = patch_version,
+                   .is_prerelease = is_prerelease};
+}
