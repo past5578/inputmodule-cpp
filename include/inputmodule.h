@@ -24,6 +24,12 @@ class InputModule {
     explicit InputModule(const char *path);
     ~InputModule();
 
+    // TODO: implement these maybe?
+    InputModule(const InputModule &other) = delete;
+    InputModule &operator=(const InputModule &other) = delete;
+    InputModule(InputModule &&other) noexcept = delete;
+    InputModule &operator=(InputModule &&other) noexcept = delete;
+
     void send_command(Command command, std::span<uint8_t> parameters = {});
     [[nodiscard]] query_response send_query(Command command, std::span<uint8_t> parameters = {});
 
