@@ -41,7 +41,7 @@ InputModule::~InputModule() {
     close(fd);
 }
 
-void InputModule::send_command(Command command, std::span<uint8_t> parameters) const {
+void InputModule::send_command(Command command, std::span<uint8_t> parameters) {
     std::vector<uint8_t> message{MAGIC_BYTES[0], MAGIC_BYTES[1], static_cast<uint8_t>(command)};
     message.insert(message.end(), parameters.begin(), parameters.end());
 
@@ -50,7 +50,7 @@ void InputModule::send_command(Command command, std::span<uint8_t> parameters) c
     }
 }
 
-query_response InputModule::send_query(Command command, std::span<uint8_t> parameters) const {
+query_response InputModule::send_query(Command command, std::span<uint8_t> parameters) {
     tcflush(fd, TCIFLUSH);
     send_command(command, parameters);
 
@@ -68,21 +68,21 @@ query_response InputModule::send_query(Command command, std::span<uint8_t> param
     return buffer;
 }
 
-void InputModule::bootloader() const {
+void InputModule::bootloader() {
     send_command(Command::BOOTLOADER);
 };
 
-void InputModule::sleep(bool state) const {
+void InputModule::sleep(bool state) {
     std::array<uint8_t, 1> params{static_cast<uint8_t>(state)};
 
     send_command(Command::SLEEP, params);
 }
 
-bool InputModule::get_sleep() const {
+bool InputModule::get_sleep() {
     return send_query(Command::GET_SLEEP)[0] != 0U;
 };
 
-void InputModule::panic() const {
+void InputModule::panic() {
     send_command(Command::PANIC);
 };
 
@@ -95,7 +95,7 @@ void InputModule::panic() const {
 MMMMMMMM mmmmPPPP 0000000p-- Major version
 */
 
-Version InputModule::version() const {
+Version InputModule::version() {
     query_response response = send_query(Command::VERSION);
 
     auto major_version = response[0];

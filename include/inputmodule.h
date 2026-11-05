@@ -24,15 +24,14 @@ class InputModule {
     explicit InputModule(const char *path);
     ~InputModule();
 
-    void send_command(Command command, std::span<uint8_t> parameters = {}) const;
-    [[nodiscard]] query_response send_query(Command command,
-                                            std::span<uint8_t> parameters = {}) const;
+    void send_command(Command command, std::span<uint8_t> parameters = {});
+    [[nodiscard]] query_response send_query(Command command, std::span<uint8_t> parameters = {});
 
-    void bootloader() const;
-    void sleep(bool state) const;
-    [[nodiscard]] bool get_sleep() const;
-    void panic() const;
-    [[nodiscard]] Version version() const;
+    void bootloader();
+    void sleep(bool state);
+    [[nodiscard]] bool get_sleep();
+    void panic();
+    [[nodiscard]] Version version();
 
   private:
     int fd = -1;
