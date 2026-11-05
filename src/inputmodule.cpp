@@ -14,11 +14,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-InputModule::InputModule(const char *path) : fd(open(path, O_RDWR)) {
-    if (fd == -1) {
-        throw std::runtime_error(std::format("failed to open {}: {}", path, std::strerror(errno)));
-    }
-
+void setup_tty(int fd) {
     termios tty{};
     if (tcgetattr(fd, &tty) == -1) {
         throw std::runtime_error(std::format("failed to get tty attrs: {}", std::strerror(errno)));
@@ -31,6 +27,22 @@ InputModule::InputModule(const char *path) : fd(open(path, O_RDWR)) {
     if (tcsetattr(fd, 0, &tty) == -1) {
         throw std::runtime_error(std::format("failed to set tty attrs: {}", std::strerror(errno)));
     }
+}
+
+InputModule::InputModule(const char *path) : fd(open(path, O_RDWR)) {
+    if (fd == -1) {
+        throw std::runtime_error(std::format("failed to open {}: {}", path, std::strerror(errno)));
+    }
+
+    setup_tty(fd);
+}
+
+InputModule::InputModule(int fd) {
+    if (fd == -1) {
+        throw std::runtime_error("fd is negative");
+    }
+
+    setup_tty(fd);
 }
 
 InputModule::~InputModule() {
@@ -59,11 +71,11 @@ void InputModule::send_command(Command command, uint8_t parameter) {
     }
 }
 
-query_response InputModule::send_query(Command command, std::span<uint8_t> parameters) {
+QueryResponse InputModule::send_query(Command command, std::span<uint8_t> parameters) {
     tcflush(fd, TCIFLUSH);
     send_command(command, parameters);
 
-    query_response buffer{};
+    QueryResponse buffer{};
 
     ssize_t status = read(fd, buffer.data(), RETURN_SIZE);
 
@@ -103,7 +115,7 @@ MMMMMMMM mmmmPPPP 0000000p-- Major version
 */
 
 Version InputModule::version() {
-    query_response response = send_query(Command::VERSION);
+    QueryResponse response = send_query(Command::VERSION);
 
     auto major_version = response[0];
     auto minor_version = static_cast<uint8_t>(response[1] >> 4);

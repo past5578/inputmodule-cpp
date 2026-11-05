@@ -10,7 +10,7 @@
 inline constexpr std::array<uint8_t, 2> MAGIC_BYTES{0x32, 0xAC};
 
 inline constexpr size_t RETURN_SIZE = 32;
-using query_response = std::array<uint8_t, RETURN_SIZE>;
+using QueryResponse = std::array<uint8_t, RETURN_SIZE>;
 
 struct Version {
     int major_version;
@@ -22,6 +22,7 @@ struct Version {
 class InputModule {
   public:
     explicit InputModule(const char *path);
+    explicit InputModule(int fd);
     ~InputModule();
 
     // TODO: implement these maybe?
@@ -32,7 +33,7 @@ class InputModule {
 
     void send_command(Command command, std::span<uint8_t> parameters = {});
     void send_command(Command command, uint8_t parameter);
-    [[nodiscard]] query_response send_query(Command command, std::span<uint8_t> parameters = {});
+    [[nodiscard]] QueryResponse send_query(Command command, std::span<uint8_t> parameters = {});
 
     void bootloader();
     void sleep(bool state);

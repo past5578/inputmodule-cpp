@@ -1,9 +1,16 @@
-#include <array>
-
 #include "ledmatrix.h"
 
+#include <array>
+
+#include <pty.h>
+
 int main() {
-    LedMatrix led;
+    int amaster = -1;
+    int aslave = -1;
+
+    openpty(&amaster, &aslave, nullptr, nullptr, nullptr);
+
+    LedMatrix led(aslave);
 
     constexpr int MAX_BRIGHTNESS = 256;
     constexpr int MAX_COLUMNS = 9;

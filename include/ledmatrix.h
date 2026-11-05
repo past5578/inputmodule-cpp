@@ -18,6 +18,7 @@ enum class PatternId : uint8_t {
 
 class LedMatrix : public InputModule {
   public:
+    explicit LedMatrix(int fd) : InputModule(fd) {};
     explicit LedMatrix(const char *path = "/dev/ttyACM0") : InputModule(path) {};
 
     void pattern(PatternId pattern_id);
