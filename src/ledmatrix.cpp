@@ -1,18 +1,13 @@
 #include "ledmatrix.h"
 
 #include <span>
-#include <vector>
 
 void LedMatrix::pattern(PatternId pattern_id) {
-    std::vector<uint8_t> parameters = {static_cast<uint8_t>(pattern_id)};
-
-    send_command(Command::PATTERN, parameters);
+    send_command(Command::PATTERN, static_cast<uint8_t>(pattern_id));
 }
 
 void LedMatrix::animate(bool state) {
-    std::array<uint8_t, 1> parameters = {static_cast<uint8_t>(state)};
-
-    send_command(Command::ANIMATE, parameters);
+    send_command(Command::ANIMATE, static_cast<uint8_t>(state));
 }
 
 bool LedMatrix::get_animate() {

@@ -31,6 +31,7 @@ class InputModule {
     InputModule &operator=(InputModule &&other) noexcept = delete;
 
     void send_command(Command command, std::span<uint8_t> parameters = {});
+    void send_command(Command command, uint8_t parameter);
     [[nodiscard]] query_response send_query(Command command, std::span<uint8_t> parameters = {});
 
     void bootloader();

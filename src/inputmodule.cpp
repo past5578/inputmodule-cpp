@@ -50,6 +50,15 @@ void InputModule::send_command(Command command, std::span<uint8_t> parameters) {
     }
 }
 
+void InputModule::send_command(Command command, uint8_t parameter) {
+    std::vector<uint8_t> message{MAGIC_BYTES[0], MAGIC_BYTES[1], static_cast<uint8_t>(command)};
+    message.insert(message.end(), parameter);
+
+    if (write(fd, message.data(), message.size()) != (ssize_t)message.size()) {
+        throw std::runtime_error(std::format("failed to set tty attrs: {}", std::strerror(errno)));
+    }
+}
+
 query_response InputModule::send_query(Command command, std::span<uint8_t> parameters) {
     tcflush(fd, TCIFLUSH);
     send_command(command, parameters);
@@ -73,9 +82,7 @@ void InputModule::bootloader() {
 };
 
 void InputModule::sleep(bool state) {
-    std::array<uint8_t, 1> params{static_cast<uint8_t>(state)};
-
-    send_command(Command::SLEEP, params);
+    send_command(Command::SLEEP, static_cast<uint8_t>(state));
 }
 
 bool InputModule::get_sleep() {
